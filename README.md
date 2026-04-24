@@ -4,5 +4,4 @@
 
 ## Credits
 
-Chess pieces by Cburnett, licensed under CC BY-SA 3.0
-https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces
+Chessboard UI by [chessboard.js](https://chessboardjs.com), licensed under MIT
