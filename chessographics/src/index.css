@@ -1,0 +1,44 @@
+:root {
+  /*Colors*/
+  --color-bg: rgb(235, 225, 225);
+  --color-1: rgb(230, 195, 195);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+}
+
+/*------Header-------*/
+
+header {
+  padding: 25px;
+  display: flex;
+  justify-content: center;
+  background-color: var(--color-1);
+}
+
+/*------Footer-------*/
+
+footer {
+  padding: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-content: center;
+  background-color: var(--color-1);
+}
+
+footer img {
+  height: 30px;
+}
+
+/*------Player Profile------*/
+
+/*----Player Profile Components----*/
+
+/*--PPGame--*/
+.player-profile-games {
+  display: flex;
+  flex-direction: row;
+}
