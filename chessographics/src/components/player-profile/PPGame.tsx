@@ -4,34 +4,45 @@
  * showing both players and the time control.
  */
 
-import type { Game } from '../../types/types';
+import type { Game } from "../../types/types";
 
 interface PPGameProps {
-  /** The game data from the Chess.com API */
   game: Game;
 }
 
 export default function PPGame({ game }: PPGameProps) {
+  // Chess.com results:
+  // "win" means winner, everything else = not winner
+  const whiteWon = game.white.result === "win";
+  const blackWon = game.black.result === "win";
+
   return (
-    <li className="player-profile-games">
-      {/* White player */}
-      <div className="player-profile-white-player">
-        <span className="player-profile-white-player-name">
-          {game.white.username}
-        </span>
-        <span>white</span>
-      </div>
-
-      {/* Black player */}
-      <div className="player-profile-black-player">
-        <span className="player-profile-black-player-name">
-          {game.black.username}
-        </span>
-        <span>black</span>
-      </div>
-
-      {/* Time control label (e.g. RAPID, BLITZ, BULLET) */}
+    <div className="PPGame-container">
       <span>{game.time_class.toUpperCase()}</span>
-    </li>
+
+      <li className="player-profile-games">
+        {/* White player */}
+        <div
+          className={`player-profile-white-player ${
+            whiteWon ? "player-profile-winner" : "player-profile-loser"
+          }`}
+        >
+          <span className="player-profile-player-name">
+            {game.white.username} ({game.white.rating})
+          </span>
+        </div>
+
+        {/* Black player */}
+        <div
+          className={`player-profile-black-player ${
+            blackWon ? "player-profile-winner" : "player-profile-loser"
+          }`}
+        >
+          <span className="player-profile-player-name">
+            {game.black.username} ({game.black.rating})
+          </span>
+        </div>
+      </li>
+    </div>
   );
 }
