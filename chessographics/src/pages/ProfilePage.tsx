@@ -1,18 +1,18 @@
 /**
  * ProfilePage — the player profile route ("/profile/:username").
- * Reads the username from the URL, fetches data via the usePlayer hook,
+ * Reads the username from the URL, fetches data via the playerInfo hook,
  * and renders the player's ratings and recent games.
  */
 
-import { useParams } from 'react-router-dom';
-import { usePlayer } from '../features/player/usePlayer';
-import PPGame from '../components/player-profile/PPGame';
+import { useParams } from "react-router-dom";
+import { playerInfo } from "../features/player/playerInfo";
+import PPGame from "../components/player-profile/PPGame";
 
 export default function ProfilePage() {
   /** The :username segment from the URL */
-  const { username = '' } = useParams<{ username: string }>();
+  const { username = "" } = useParams<{ username: string }>();
 
-  const { profile, stats, games, loading, error } = usePlayer(username);
+  const { profile, stats, games, loading, error } = playerInfo(username);
 
   // Loading state
   if (loading) return <p>Loading...</p>;
@@ -23,10 +23,10 @@ export default function ProfilePage() {
   // No data yet (e.g. empty username)
   if (!profile) return null;
 
-  // Ratings — fall back to em-dash if the time control isn't present
-  const rapid = stats?.chess_rapid?.last?.rating ?? '—';
-  const blitz = stats?.chess_blitz?.last?.rating ?? '—';
-  const bullet = stats?.chess_bullet?.last?.rating ?? '—';
+  // Ratings
+  const rapid = stats?.chess_rapid?.last?.rating ?? "X";
+  const blitz = stats?.chess_blitz?.last?.rating ?? "X";
+  const bullet = stats?.chess_bullet?.last?.rating ?? "X";
 
   // Show the 10 most recent games, newest first
   const recentGames = [...games].slice(-10).reverse();

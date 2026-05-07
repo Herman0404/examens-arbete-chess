@@ -3,11 +3,11 @@
  * Combines profile, stats, and recent games into a single state object.
  */
 
-import { useState, useEffect } from 'react';
-import { getPlayer, getPlayerStats, getRecentGames } from '../../api/chess';
-import type { PlayerProfile, PlayerStats, Game } from '../../types/types';
+import { useState, useEffect } from "react";
+import { getPlayer, getPlayerStats, getRecentGames } from "../../api/chess";
+import type { PlayerProfile, PlayerStats, Game } from "../../types/types";
 
-/** The shape of state managed by the usePlayer hook */
+/** The interface of state managed by the usePlayer hook */
 interface PlayerState {
   profile: PlayerProfile | null;
   stats: PlayerStats | null;
@@ -16,7 +16,7 @@ interface PlayerState {
   error: string | null;
 }
 
-/** Initial empty state before any fetch begins */
+/** Empty state before any fetch */
 const INITIAL_STATE: PlayerState = {
   profile: null,
   stats: null,
@@ -26,13 +26,13 @@ const INITIAL_STATE: PlayerState = {
 };
 
 /**
- * Fetches a player's profile, stats, and recent games in parallel.
+ * Fetches a player's profile, stats, and recent games.
  * Re-fetches whenever the username changes.
  *
  * @param username - A Chess.com username to look up
  * @returns Current loading/error state plus fetched data
  */
-export function usePlayer(username: string): PlayerState {
+export function playerInfo(username: string): PlayerState {
   const [state, setState] = useState<PlayerState>(INITIAL_STATE);
 
   useEffect(() => {
