@@ -44,9 +44,12 @@ export interface PlayerStats {
 
 /** A single game from the Chess.com archives */
 export interface Game {
-  url: string;
+  url: string; // Link
+  // Time info
   time_class: string;
   time_control: string;
+  end_time: number;
+  // Players
   white: {
     username: string;
     rating: number;
@@ -57,6 +60,6 @@ export interface Game {
     rating: number;
     result: string;
   };
+  // Game info
   pgn?: string;
-  end_time: number;
 }

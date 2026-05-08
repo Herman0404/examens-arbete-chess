@@ -15,15 +15,25 @@ export default function ProfilePage() {
   const { profile, stats, games, loading, error } = playerInfo(username);
 
   // Loading state
-  if (loading) return <p>Loading...</p>;
+  if (loading)
+    return (
+      <main>
+        <h1>Loading...</h1>
+      </main>
+    );
 
   // Error state (e.g. player not found)
-  if (error) return <p>Error: {error}</p>;
+  if (error)
+    return (
+      <main>
+        <h1>Error: {error}</h1>
+      </main>
+    );
 
-  // No data yet (e.g. empty username)
+  // No data yet
   if (!profile) return null;
 
-  // Ratings
+  // Ratings — fall back to "X" if the time control isn't played
   const rapid = stats?.chess_rapid?.last?.rating ?? "X";
   const blitz = stats?.chess_blitz?.last?.rating ?? "X";
   const bullet = stats?.chess_bullet?.last?.rating ?? "X";
@@ -33,19 +43,33 @@ export default function ProfilePage() {
 
   return (
     <main>
-      <h1>{profile.username}</h1>
+      <h1 className="player-profile-username">{profile.username}</h1>
 
       {/* Rating summary */}
-      <p>
-        Rapid: {rapid} · Blitz: {blitz} · Bullet: {bullet}
-      </p>
+      <div className="player-profile-ratings">
+        <div className="player-profile-rating-card">
+          <span className="player-profile-rating-label">Rapid</span>
+          <span className="player-profile-rating-value">{rapid}</span>
+        </div>
+        <div className="player-profile-rating-card">
+          <span className="player-profile-rating-label">Blitz</span>
+          <span className="player-profile-rating-value">{blitz}</span>
+        </div>
+        <div className="player-profile-rating-card">
+          <span className="player-profile-rating-label">Bullet</span>
+          <span className="player-profile-rating-value">{bullet}</span>
+        </div>
+      </div>
 
       {/* Recent games list */}
-      <ul>
-        {recentGames.map((game) => (
-          <PPGame key={game.url} game={game} />
-        ))}
-      </ul>
+      <div className="player-profile-games-section">
+        <span className="player-profile-games-title">Recent games</span>
+        <ul className="player-profile-games-list">
+          {recentGames.map((game) => (
+            <PPGame key={game.url} game={game} />
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }

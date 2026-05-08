@@ -3,15 +3,18 @@
  * Shows the logo and placeholder links.
  */
 
-import logo from '../../assets/images/logo.png';
+import { Link } from "react-router-dom";
+import logo from "../../assets/images/logo.png";
 
 export default function Footer() {
   return (
     <footer>
-      <img src={logo} alt="Chessographics logo" />
-      <div>
-        <p>Terms</p>
-      </div>
+      <Link to="/" className="footer-logo-link">
+        <img src={logo} alt="Chessographics logo" className="footer-logo" />
+      </Link>
+      <nav className="footer-nav">
+        <p className="footer-nav-item">Terms</p>
+      </nav>
     </footer>
   );
 }
