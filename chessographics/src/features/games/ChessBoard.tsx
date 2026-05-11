@@ -3,226 +3,281 @@ import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import type { Game } from "../../types/types";
 
-interface ChessBoardProps {
-  game: Game;
-}
-
-const THEMES: { label: string; light: string; dark: string }[] = [
-  { label: "Rose", light: "rgb(240, 225, 215)", dark: "rgb(180, 130, 120)" },
-  { label: "Forest", light: "rgb(235, 240, 220)", dark: "rgb(100, 140, 90)" },
-  { label: "Ocean", light: "rgb(220, 235, 245)", dark: "rgb(80, 130, 170)" },
-  { label: "Dusk", light: "rgb(235, 225, 245)", dark: "rgb(130, 100, 170)" },
-  { label: "Classic", light: "rgb(240, 220, 180)", dark: "rgb(150, 100, 60)" },
+const THEMES = [
+  { label: "Rose", light: "rgb(240,225,215)", dark: "rgb(180,130,120)" },
+  { label: "Forest", light: "rgb(235,240,220)", dark: "rgb(100,140,90)" },
+  { label: "Ocean", light: "rgb(220,235,245)", dark: "rgb(80,130,170)" },
+  { label: "Dusk", light: "rgb(235,225,245)", dark: "rgb(130,100,170)" },
+  { label: "Classic", light: "rgb(240,220,180)", dark: "rgb(150,100,60)" },
 ];
 
-export default function ChessBoard({ game }: ChessBoardProps) {
-  const history = useMemo(() => {
+const getCSSVar = (name: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+const getSquareStyle = (
+  type: "selected" | "dot" | "ring",
+): React.CSSProperties => ({
+  background: getCSSVar(`--square-${type}-bg`),
+  borderRadius: getCSSVar(`--square-${type}-radius`),
+});
+
+export default function ChessBoard({ game }: { game: Game }) {
+  const moveHistory = useMemo(() => {
     const chess = new Chess();
     if (game.pgn) chess.loadPgn(game.pgn);
     return chess.history({ verbose: true });
   }, [game.pgn]);
 
-  const totalMoves = history.length;
+  const totalMoves = moveHistory.length;
 
-  const [moveIndex, setMoveIndex] = useState(totalMoves);
-  const [freeChess, setFreeChess] = useState<Chess | null>(null);
-  const [themeIndex, setThemeIndex] = useState(0);
-
-  const theme = THEMES[themeIndex];
-  const isDirty = freeChess !== null;
+  const [currentMoveIndex, setCurrentMoveIndex] = useState(totalMoves);
+  const [freePlayChess, setFreePlayChess] = useState<Chess | null>(null);
+  const [selectedThemeIndex, setSelectedThemeIndex] = useState(0);
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [highlightedSquares, setHighlightedSquares] = useState<
+    Record<string, React.CSSProperties>
+  >({});
 
   const moveListRef = useRef<HTMLOListElement>(null);
   const activeMoveRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     activeMoveRef.current?.scrollIntoView({
       block: "nearest",
       behavior: "smooth",
     });
-  }, [moveIndex]);
+  }, [currentMoveIndex]);
+
+  const fenAtCurrentMove = useMemo(() => {
+    const chess = new Chess();
+    for (let i = 0; i < currentMoveIndex; i++) chess.move(moveHistory[i]);
+    return chess.fen();
+  }, [moveHistory, currentMoveIndex]);
+
+  const boardPosition = freePlayChess?.fen() ?? fenAtCurrentMove;
+  const chessAtPosition = useMemo(
+    () => new Chess(boardPosition),
+    [boardPosition],
+  );
+
+  const clearSelection = () => {
+    setSelectedSquare(null);
+    setHighlightedSquares({});
+  };
+
+  const goToMove = (moveIndex: number) => {
+    setCurrentMoveIndex(moveIndex);
+    setFreePlayChess(null);
+    clearSelection();
+  };
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
       )
         return;
-      if (e.key === "ArrowLeft") {
+      const keyActions: Record<string, () => void> = {
+        ArrowLeft: () => goToMove(Math.max(0, currentMoveIndex - 1)),
+        ArrowRight: () => goToMove(Math.min(totalMoves, currentMoveIndex + 1)),
+        ArrowUp: () => goToMove(0),
+        ArrowDown: () => goToMove(totalMoves),
+      };
+      if (keyActions[e.key]) {
         e.preventDefault();
-        goTo(Math.max(0, moveIndex - 1));
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        goTo(Math.min(totalMoves, moveIndex + 1));
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        goTo(0);
-      }
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        goTo(totalMoves);
+        keyActions[e.key]();
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [moveIndex, totalMoves]);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [currentMoveIndex, totalMoves]);
 
-  const gameFen = useMemo(() => {
-    const chess = new Chess();
-    for (let i = 0; i < moveIndex; i++) chess.move(history[i]);
-    return chess.fen();
-  }, [history, moveIndex]);
-
-  const position = freeChess ? freeChess.fen() : gameFen;
-
-  const handlePieceDrop = (
-    sourceSquare: string,
-    targetSquare: string,
-  ): boolean => {
-    const base = freeChess ?? new Chess(gameFen);
-    const clone = new Chess(base.fen());
-    const move = clone.move({
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q",
+  const showLegalMoves = (square: string) => {
+    const legalMoves = chessAtPosition.moves({
+      square: square as any,
+      verbose: true,
     });
-    if (!move) return false;
-    setFreeChess(clone);
+    if (!legalMoves.length) {
+      clearSelection();
+      return;
+    }
+
+    const squareStyles: Record<string, React.CSSProperties> = {
+      [square]: getSquareStyle("selected"),
+    };
+    legalMoves.forEach((move) => {
+      const isCapture = !!chessAtPosition.get(move.to as any);
+      squareStyles[move.to] = getSquareStyle(isCapture ? "ring" : "dot");
+    });
+
+    setHighlightedSquares(squareStyles);
+    setSelectedSquare(square);
+  };
+
+  const attemptMove = (fromSquare: string, toSquare: string) => {
+    const clone = new Chess(
+      (freePlayChess ?? new Chess(fenAtCurrentMove)).fen(),
+    );
+    if (!clone.move({ from: fromSquare, to: toSquare, promotion: "q" }))
+      return false;
+    setFreePlayChess(clone);
+    clearSelection();
     return true;
   };
 
-  const goTo = (index: number) => {
-    setMoveIndex(index);
-    setFreeChess(null);
+  const onSquareClick = (clickedSquare: string) => {
+    if (selectedSquare === clickedSquare) {
+      clearSelection();
+      return;
+    }
+    const clickedPiece = chessAtPosition.get(clickedSquare as any);
+    const isOwnPiece =
+      clickedPiece && clickedPiece.color === chessAtPosition.turn();
+    if (isOwnPiece) {
+      showLegalMoves(clickedSquare);
+      return;
+    }
+    if (selectedSquare && attemptMove(selectedSquare, clickedSquare)) return;
+    clearSelection();
   };
 
-  const movePairs = useMemo(() => {
-    const pairs: { white: string; black?: string }[] = [];
-    for (let i = 0; i < history.length; i += 2) {
-      pairs.push({ white: history[i].san, black: history[i + 1]?.san });
-    }
-    return pairs;
-  }, [history]);
+  const movePairs = useMemo(
+    () =>
+      moveHistory.reduce<{ white: string; black?: string }[]>(
+        (pairs, move, i) => {
+          if (i % 2 === 0)
+            pairs.push({ white: move.san, black: moveHistory[i + 1]?.san });
+          return pairs;
+        },
+        [],
+      ),
+    [moveHistory],
+  );
+
+  const NavButton = ({
+    svgPath,
+    onClick,
+    disabled,
+    title,
+  }: {
+    svgPath: string;
+    onClick: () => void;
+    disabled: boolean;
+    title: string;
+  }) => (
+    <button
+      className="chessboard-btn chessboard-btn--nav"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+    >
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path
+          d={svgPath}
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+
+  const activeTheme = THEMES[selectedThemeIndex];
+  const isInFreePlay = freePlayChess !== null;
 
   return (
     <div className="chessboard-layout">
-      {/* ── Board column ── */}
       <div className="chessboard-column">
         {/* Theme picker */}
         <div className="chessboard-themes">
-          {THEMES.map((t, i) => (
+          {THEMES.map((theme, i) => (
             <button
-              key={t.label}
-              title={t.label}
-              className={`chessboard-theme-btn ${i === themeIndex ? "chessboard-theme-btn--active" : ""}`}
-              onClick={() => setThemeIndex(i)}
+              key={theme.label}
+              title={theme.label}
+              onClick={() => setSelectedThemeIndex(i)}
+              className={`chessboard-theme-btn ${i === selectedThemeIndex ? "chessboard-theme-btn--active" : ""}`}
             >
               <span className="chessboard-theme-swatch">
-                <span style={{ background: t.light }} />
-                <span style={{ background: t.dark }} />
+                <span style={{ background: theme.light }} />
+                <span style={{ background: theme.dark }} />
               </span>
             </button>
           ))}
         </div>
 
-        {/* Board */}
-        <div className="chessboard-board-wrap">
+        {/* Board — onMouseDown fires instantly on press */}
+        <div
+          className="chessboard-board-wrap"
+          onMouseDown={(e) => {
+            const square = (e.target as HTMLElement)
+              .closest("[data-square]")
+              ?.getAttribute("data-square");
+            if (!square) return;
+            const piece = chessAtPosition.get(square as any);
+            if (piece && piece.color === chessAtPosition.turn())
+              showLegalMoves(square);
+          }}
+        >
           <Chessboard
-            position={position}
-            onPieceDrop={handlePieceDrop}
-            customDarkSquareStyle={{ backgroundColor: theme.dark }}
-            customLightSquareStyle={{ backgroundColor: theme.light }}
+            position={boardPosition}
             boardWidth={400}
+            customSquareStyles={highlightedSquares}
+            customDarkSquareStyle={{ backgroundColor: activeTheme.dark }}
+            customLightSquareStyle={{ backgroundColor: activeTheme.light }}
+            onSquareClick={onSquareClick}
+            onPieceDragEnd={clearSelection}
+            onPieceDrop={(fromSquare, toSquare) =>
+              attemptMove(fromSquare, toSquare)
+            }
           />
         </div>
 
         {/* Controls */}
         <div className="chessboard-controls">
-          <button
-            className="chessboard-btn chessboard-btn--nav"
-            onClick={() => goTo(0)}
-            disabled={moveIndex === 0 && !isDirty}
+          <NavButton
+            svgPath="M3 3v10M13 3L7 8l6 5"
+            onClick={() => goToMove(0)}
+            disabled={currentMoveIndex === 0 && !isInFreePlay}
             title="Start (↑)"
-          >
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path
-                d="M3 3v10M13 3L7 8l6 5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
-          <button
-            className="chessboard-btn chessboard-btn--nav"
-            onClick={() => goTo(Math.max(0, moveIndex - 1))}
-            disabled={moveIndex === 0 && !isDirty}
+          />
+          <NavButton
+            svgPath="M10 3L4 8l6 5"
+            onClick={() => goToMove(Math.max(0, currentMoveIndex - 1))}
+            disabled={currentMoveIndex === 0 && !isInFreePlay}
             title="Previous (←)"
-          >
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path
-                d="M10 3L4 8l6 5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
+          />
           <span className="chessboard-move-count">
-            {moveIndex} <span className="chessboard-move-count-sep">/</span>{" "}
-            {totalMoves}
+            {currentMoveIndex}{" "}
+            <span className="chessboard-move-count-sep">/</span> {totalMoves}
           </span>
-
-          <button
-            className="chessboard-btn chessboard-btn--nav"
-            onClick={() => goTo(Math.min(totalMoves, moveIndex + 1))}
-            disabled={moveIndex === totalMoves}
+          <NavButton
+            svgPath="M6 3l6 5-6 5"
+            onClick={() => goToMove(Math.min(totalMoves, currentMoveIndex + 1))}
+            disabled={currentMoveIndex === totalMoves}
             title="Next (→)"
-          >
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path
-                d="M6 3l6 5-6 5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
-          <button
-            className="chessboard-btn chessboard-btn--nav"
-            onClick={() => goTo(totalMoves)}
-            disabled={moveIndex === totalMoves}
+          />
+          <NavButton
+            svgPath="M13 3v10M3 3l6 5-6 5"
+            onClick={() => goToMove(totalMoves)}
+            disabled={currentMoveIndex === totalMoves}
             title="End (↓)"
-          >
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path
-                d="M13 3v10M3 3l6 5-6 5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          />
         </div>
 
-        {isDirty && (
+        {isInFreePlay && (
           <button
             className="chessboard-btn chessboard-btn--reset"
-            onClick={() => setFreeChess(null)}
+            onClick={() => {
+              setFreePlayChess(null);
+              clearSelection();
+            }}
           >
             ↺ Reset board
           </button>
         )}
 
-        {/* Keyboard hint */}
         <p className="chessboard-hint">
           <kbd>←</kbd>
           <kbd>→</kbd> step &nbsp;·&nbsp; <kbd>↑</kbd>
@@ -230,37 +285,32 @@ export default function ChessBoard({ game }: ChessBoardProps) {
         </p>
       </div>
 
-      {/* ── Move list column ── */}
+      {/* Move list */}
       <div className="chessboard-movelist-column">
         <p className="chessboard-movelist-label">Moves</p>
         <ol className="chessboard-movelist" ref={moveListRef}>
-          {movePairs.map((pair, pairIdx) => {
-            const whiteHalfIdx = pairIdx * 2 + 1;
-            const blackHalfIdx = pairIdx * 2 + 2;
-            return (
-              <li key={pairIdx} className="chessboard-movelist-row">
-                <span className="chessboard-movelist-num">{pairIdx + 1}.</span>
-
-                <button
-                  ref={moveIndex === whiteHalfIdx ? activeMoveRef : undefined}
-                  className={`chessboard-movelist-move ${moveIndex === whiteHalfIdx ? "chessboard-movelist-move--active" : ""}`}
-                  onClick={() => goTo(whiteHalfIdx)}
-                >
-                  {pair.white}
-                </button>
-
-                {pair.black && (
+          {movePairs.map((pair, pairIndex) => (
+            <li key={pairIndex} className="chessboard-movelist-row">
+              <span className="chessboard-movelist-num">{pairIndex + 1}.</span>
+              {(["white", "black"] as const).map((color, colorIndex) => {
+                const moveIndex = pairIndex * 2 + colorIndex + 1;
+                const san = color === "white" ? pair.white : pair.black;
+                if (!san) return null;
+                return (
                   <button
-                    ref={moveIndex === blackHalfIdx ? activeMoveRef : undefined}
-                    className={`chessboard-movelist-move ${moveIndex === blackHalfIdx ? "chessboard-movelist-move--active" : ""}`}
-                    onClick={() => goTo(blackHalfIdx)}
+                    key={color}
+                    ref={
+                      currentMoveIndex === moveIndex ? activeMoveRef : undefined
+                    }
+                    className={`chessboard-movelist-move ${currentMoveIndex === moveIndex ? "chessboard-movelist-move--active" : ""}`}
+                    onClick={() => goToMove(moveIndex)}
                   >
-                    {pair.black}
+                    {san}
                   </button>
-                )}
-              </li>
-            );
-          })}
+                );
+              })}
+            </li>
+          ))}
         </ol>
       </div>
     </div>

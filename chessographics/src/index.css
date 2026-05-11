@@ -7,6 +7,22 @@
   --color-accent-soft: rgba(180, 130, 120, 0.18);
   --radius-card: 14px;
   --radius-btn: 8px;
+
+  /* Square highlight styles — read by ChessBoard.tsx via getComputedStyle */
+  --square-selected-bg: rgba(0, 0, 0, 0.08);
+  --square-selected-radius: 4px;
+  --square-dot-bg: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.18) 28%,
+    transparent 30%
+  );
+  --square-dot-radius: 50%;
+  --square-ring-bg: radial-gradient(
+    circle,
+    transparent 55%,
+    rgba(0, 0, 0, 0.15) 57%
+  );
+  --square-ring-radius: 50%;
 }
 
 * {
@@ -196,11 +212,7 @@ footer {
   background: rgba(190, 175, 155, 0.15);
 }
 
-.player-profile-player-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.player-profile-player-left,
 .player-profile-player-right {
   display: flex;
   align-items: center;
@@ -324,7 +336,6 @@ footer {
 
 .chessboard-themes {
   display: flex;
-  flex-direction: row;
   gap: 6px;
 }
 
@@ -394,7 +405,6 @@ footer {
   width: 34px;
   height: 34px;
 }
-
 .chessboard-btn--nav svg {
   width: 15px;
   height: 15px;
@@ -405,11 +415,9 @@ footer {
   background: var(--color-accent-soft);
   color: var(--color-accent);
 }
-
 .chessboard-btn:active:not(:disabled) {
   transform: scale(0.9);
 }
-
 .chessboard-btn:disabled {
   opacity: 0.25;
   cursor: default;
@@ -468,7 +476,7 @@ footer {
 }
 
 /*════════════════════════════════════════
-  MOVE LIST (right column)
+  MOVE LIST
 ════════════════════════════════════════*/
 
 .chessboard-movelist-column {
@@ -489,7 +497,7 @@ footer {
 
 .chessboard-movelist {
   list-style: none;
-  padding: 0;
+  padding: 6px 4px;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -501,7 +509,6 @@ footer {
   box-shadow:
     0 2px 8px rgba(180, 130, 130, 0.12),
     0 0 0 1px rgba(180, 130, 130, 0.1);
-  padding: 6px 4px;
   min-width: 180px;
 }
 
@@ -555,13 +562,11 @@ footer {
 .chessboard-movelist-move:hover {
   background: var(--color-accent-soft);
 }
-
 .chessboard-movelist-move--active {
   background: var(--color-accent);
   color: white;
   font-weight: 600;
 }
-
 .chessboard-movelist-move--active:hover {
   background: var(--color-accent);
 }
