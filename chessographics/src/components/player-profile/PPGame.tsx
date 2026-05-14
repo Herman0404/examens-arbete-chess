@@ -5,7 +5,7 @@ interface PPGameProps {
   game: Game;
 }
 
-// Format seconds into "5+3 min", "10 min", "1:30+0 min" etc.
+// Format seconds
 function formatTimeControl(tc: string): string {
   const [base, increment] = tc.split("+").map(Number);
   const minutes = Math.floor(base / 60);
