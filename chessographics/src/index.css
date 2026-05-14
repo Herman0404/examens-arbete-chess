@@ -8,7 +8,6 @@
   --radius-card: 14px;
   --radius-btn: 8px;
 
-  /* Square highlight styles — read by ChessBoard.tsx via getComputedStyle */
   --square-selected-bg: rgba(0, 0, 0, 0.08);
   --square-selected-radius: 4px;
   --square-dot-bg: radial-gradient(
@@ -37,17 +36,14 @@ body {
 }
 
 /*------ Layout ------*/
-
 .site-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
-
 .page-content {
   flex: 1;
 }
-
 main {
   display: flex;
   flex-direction: column;
@@ -57,14 +53,12 @@ main {
 }
 
 /*------ Header ------*/
-
 header {
   padding: 20px 25px;
   display: flex;
   justify-content: center;
   background-color: var(--color-1);
 }
-
 .header-logo-link {
   display: flex;
   align-items: center;
@@ -74,7 +68,6 @@ header {
 }
 
 /*------ Footer ------*/
-
 footer {
   padding: 20px 25px;
   display: flex;
@@ -83,7 +76,6 @@ footer {
   margin-top: auto;
   background-color: var(--color-1);
 }
-
 .footer-logo-link {
   display: flex;
   align-items: center;
@@ -91,12 +83,10 @@ footer {
 .footer-logo {
   height: 30px;
 }
-
 .footer-nav {
   display: flex;
   gap: 16px;
 }
-
 .footer-nav-item {
   margin: 0;
   font-size: 0.8rem;
@@ -105,7 +95,6 @@ footer {
 }
 
 /*------ Player Profile ------*/
-
 .player-profile-username {
   font-size: 2rem;
   font-weight: 600;
@@ -114,12 +103,10 @@ footer {
 }
 
 /*---- Rating cards ----*/
-
 .player-profile-ratings {
   display: flex;
   gap: 12px;
 }
-
 .player-profile-rating-card {
   background: var(--color-1);
   border-radius: 12px;
@@ -130,7 +117,6 @@ footer {
   gap: 2px;
   min-width: 90px;
 }
-
 .player-profile-rating-label {
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -138,7 +124,6 @@ footer {
   color: rgb(110, 70, 70);
   font-weight: 500;
 }
-
 .player-profile-rating-value {
   font-size: 1.5rem;
   font-weight: 600;
@@ -146,14 +131,12 @@ footer {
 }
 
 /*---- Games section ----*/
-
 .player-profile-games-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: min(720px, 100%);
 }
-
 .player-profile-games-title {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -162,7 +145,6 @@ footer {
   font-weight: 500;
   margin-bottom: 4px;
 }
-
 .player-profile-games-list {
   list-style: none;
   padding: 0;
@@ -173,13 +155,11 @@ footer {
 }
 
 /*---- PPGame card ----*/
-
 .PPGame-container {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .player-profile-games {
   background: white;
   border-radius: var(--radius-card);
@@ -191,7 +171,6 @@ footer {
     0 2px 8px rgba(180, 130, 130, 0.15),
     0 0 0 1px rgba(180, 130, 130, 0.1);
 }
-
 .player-profile-white-player,
 .player-profile-black-player {
   display: flex;
@@ -201,7 +180,6 @@ footer {
   width: 100%;
   border-bottom: 1px solid rgba(180, 130, 130, 0.1);
 }
-
 .player-profile-winner {
   background: rgba(130, 165, 130, 0.2);
 }
@@ -211,27 +189,23 @@ footer {
 .player-profile-draw {
   background: rgba(190, 175, 155, 0.15);
 }
-
 .player-profile-player-left,
 .player-profile-player-right {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .player-profile-player-name {
   font-size: 1rem;
   font-weight: 500;
   color: rgb(50, 35, 35);
 }
-
 .player-profile-player-rating {
   font-size: 0.85rem;
   color: rgb(130, 100, 100);
   min-width: 36px;
   text-align: right;
 }
-
 .player-profile-pip {
   width: 10px;
   height: 10px;
@@ -239,7 +213,6 @@ footer {
   display: inline-block;
   flex-shrink: 0;
 }
-
 .player-profile-pip--white {
   background: #f5f0ec;
   border: 1.5px solid #bbb;
@@ -247,7 +220,6 @@ footer {
 .player-profile-pip--black {
   background: rgb(45, 35, 35);
 }
-
 .player-profile-result-badge {
   font-size: 0.7rem;
   font-weight: 600;
@@ -256,7 +228,6 @@ footer {
   min-width: 42px;
   text-align: center;
 }
-
 .player-profile-result-badge--winner {
   background: rgba(100, 150, 100, 0.25);
   color: rgb(45, 95, 45);
@@ -269,7 +240,6 @@ footer {
   background: rgba(175, 155, 115, 0.25);
   color: rgb(115, 95, 55);
 }
-
 .player-profile-game-footer {
   display: flex;
   justify-content: space-between;
@@ -277,21 +247,28 @@ footer {
   padding: 8px 20px;
   background: rgba(235, 215, 215, 0.4);
 }
-
 .player-profile-game-time-class {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: rgb(130, 95, 95);
 }
-
+.player-profile-game-opening {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  text-align: right;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .player-profile-games--clickable {
   cursor: pointer;
   transition:
     box-shadow 0.15s,
     transform 0.15s;
 }
-
 .player-profile-games--clickable:hover {
   box-shadow:
     0 4px 14px rgba(180, 130, 130, 0.25),
@@ -307,9 +284,9 @@ footer {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 24px;
+  gap: 12px;
   width: 100%;
-  max-width: 760px;
+  max-width: 860px;
 }
 
 .chessboard-column {
@@ -333,12 +310,10 @@ footer {
 }
 
 /*-- Theme picker --*/
-
 .chessboard-themes {
   display: flex;
   gap: 6px;
 }
-
 .chessboard-theme-btn {
   display: flex;
   align-items: center;
@@ -349,14 +324,12 @@ footer {
   cursor: pointer;
   transition: border-color 0.15s;
 }
-
 .chessboard-theme-btn:hover {
   border-color: rgba(180, 130, 120, 0.4);
 }
 .chessboard-theme-btn--active {
   border-color: var(--color-accent);
 }
-
 .chessboard-theme-swatch {
   display: flex;
   width: 28px;
@@ -364,14 +337,12 @@ footer {
   border-radius: 4px;
   overflow: hidden;
 }
-
 .chessboard-theme-swatch span {
   flex: 1;
   height: 100%;
 }
 
 /*-- Navigation controls --*/
-
 .chessboard-controls {
   display: flex;
   align-items: center;
@@ -383,7 +354,6 @@ footer {
     0 1px 4px rgba(180, 130, 130, 0.12),
     0 0 0 1px rgba(180, 130, 130, 0.1);
 }
-
 .chessboard-btn {
   background: none;
   border: none;
@@ -400,7 +370,6 @@ footer {
     transform 0.1s;
   line-height: 1;
 }
-
 .chessboard-btn--nav {
   width: 34px;
   height: 34px;
@@ -410,7 +379,6 @@ footer {
   height: 15px;
   display: block;
 }
-
 .chessboard-btn:hover:not(:disabled) {
   background: var(--color-accent-soft);
   color: var(--color-accent);
@@ -422,7 +390,6 @@ footer {
   opacity: 0.25;
   cursor: default;
 }
-
 .chessboard-btn--reset {
   font-size: 0.78rem;
   padding: 6px 14px;
@@ -433,13 +400,11 @@ footer {
   border: 1px solid rgba(200, 80, 80, 0.2);
   border-radius: 8px;
 }
-
 .chessboard-btn--reset:hover:not(:disabled) {
   background: rgba(220, 100, 100, 0.15);
   color: rgb(180, 60, 60);
   border-color: rgba(200, 80, 80, 0.4);
 }
-
 .chessboard-move-count {
   font-size: 0.82rem;
   color: var(--color-text-muted);
@@ -448,20 +413,17 @@ footer {
   font-variant-numeric: tabular-nums;
   padding: 0 4px;
 }
-
 .chessboard-move-count-sep {
   opacity: 0.4;
 }
 
 /*-- Keyboard hint --*/
-
 .chessboard-hint {
   margin: 0;
   font-size: 0.72rem;
   color: var(--color-text-muted);
   letter-spacing: 0.01em;
 }
-
 .chessboard-hint kbd {
   display: inline-block;
   background: white;
@@ -476,14 +438,62 @@ footer {
 }
 
 /*════════════════════════════════════════
+  EVAL BAR
+════════════════════════════════════════*/
+
+.eval-bar-outer {
+  flex-shrink: 0;
+}
+
+.eval-bar-track {
+  width: 14px;
+  background: rgb(45, 35, 35);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.eval-bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #f5f0ec;
+  transition: height 0.4s ease;
+}
+
+.eval-bar-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  writing-mode: vertical-rl;
+  z-index: 1;
+}
+
+.eval-bar-label--bottom {
+  bottom: 6px;
+  color: rgb(45, 35, 35);
+}
+.eval-bar-label--top {
+  top: 6px;
+  color: #f0ebe8;
+}
+
+/*════════════════════════════════════════
   MOVE LIST
+  Fix: min-height:0 lets the flex child
+  respect its explicit height and scroll.
 ════════════════════════════════════════*/
 
 .chessboard-movelist-column {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  align-self: stretch;
+  align-self: flex-start;
 }
 
 .chessboard-movelist-label {
@@ -493,23 +503,24 @@ footer {
   letter-spacing: 0.1em;
   color: var(--color-text-muted);
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .chessboard-movelist {
   list-style: none;
   padding: 6px 4px;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  max-height: 380px;
-  overflow-y: auto;
+  /* block so height:400px is always respected — flex children can grow past fixed height */
+  display: block;
+  height: 400px;
+  overflow-y: scroll;
+  overflow-x: hidden;
   background: white;
   border-radius: var(--radius-card);
   box-shadow:
     0 2px 8px rgba(180, 130, 130, 0.12),
     0 0 0 1px rgba(180, 130, 130, 0.1);
-  min-width: 180px;
+  width: 200px;
 }
 
 .chessboard-movelist::-webkit-scrollbar {
@@ -524,8 +535,8 @@ footer {
 }
 
 .chessboard-movelist-row {
-  display: grid;
-  grid-template-columns: 28px 1fr 1fr;
+  display: flex;
+  flex-direction: row;
   align-items: center;
   border-radius: 5px;
   overflow: hidden;
@@ -539,21 +550,28 @@ footer {
   font-size: 0.72rem;
   color: var(--color-text-muted);
   text-align: right;
-  padding-right: 6px;
+  padding: 0 6px 0 4px;
   font-variant-numeric: tabular-nums;
   user-select: none;
+  flex-shrink: 0;
+  width: 28px;
 }
 
 .chessboard-movelist-move {
+  flex: 1;
   background: none;
   border: none;
-  padding: 5px 8px;
-  font-size: 0.85rem;
+  padding: 5px 6px;
+  font-size: 0.82rem;
   font-family: inherit;
   color: var(--color-text-main);
   cursor: pointer;
   border-radius: 4px;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
   transition:
     background 0.1s,
     color 0.1s;
@@ -580,14 +598,16 @@ footer {
     flex-direction: column;
     align-items: center;
   }
-
+  .eval-bar-outer {
+    display: none;
+  }
   .chessboard-movelist-column {
     width: 100%;
     max-width: 400px;
-    align-self: auto;
+    height: auto;
+    max-height: 240px;
   }
-
   .chessboard-movelist {
-    max-height: 220px;
+    width: 100%;
   }
 }

@@ -2,6 +2,86 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import type { Game } from "../../types/types";
+import { useStockfish } from "../analysis/stockfish";
+import type { StockfishEval } from "../analysis/stockfish";
+
+// ---------------------------------------------------------------------------
+// Eval bar
+// ---------------------------------------------------------------------------
+
+function EvalBar({
+  evaluation,
+  height,
+}: {
+  evaluation: StockfishEval | null;
+  height: number;
+}) {
+  // fillPct: 0 = black winning, 50 = equal, 100 = white winning
+  let fillPct = 50;
+  if (evaluation) {
+    if (evaluation.mate !== null) {
+      fillPct = evaluation.mate > 0 ? 95 : 5;
+    } else {
+      // Clamp to ±800cp → 0–100%
+      fillPct = 50 + Math.max(-50, Math.min(50, evaluation.score / 16));
+    }
+  }
+
+  const label = evaluation
+    ? evaluation.mate !== null
+      ? `M${Math.abs(evaluation.mate)}`
+      : (Math.abs(evaluation.score) / 100).toFixed(1)
+    : "0.0";
+
+  const whiteUp = fillPct >= 50;
+
+  return (
+    <div
+      style={{
+        width: 14,
+        height,
+        borderRadius: 6,
+        overflow: "hidden",
+        background: "rgb(45,35,35)",
+        position: "relative",
+        flexShrink: 0,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          height: `${fillPct}%`,
+          background: "#f5f0ec",
+          transition: "height 0.4s ease",
+        }}
+      />
+      <span
+        style={{
+          position: "absolute",
+          left: "50%",
+          transform: "translateX(-50%)",
+          ...(whiteUp ? { bottom: 4 } : { top: 4 }),
+          fontSize: "0.6rem",
+          fontWeight: 700,
+          color: whiteUp ? "rgb(45,35,35)" : "#f5f0ec",
+          writingMode: "vertical-rl",
+          userSelect: "none",
+          zIndex: 1,
+          lineHeight: 1,
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Board themes
+// ---------------------------------------------------------------------------
 
 const THEMES = [
   { label: "Rose", light: "rgb(240,225,215)", dark: "rgb(180,130,120)" },
@@ -21,6 +101,47 @@ const getSquareStyle = (
   borderRadius: getCSSVar(`--square-${type}-radius`),
 });
 
+// ---------------------------------------------------------------------------
+// Nav button
+// ---------------------------------------------------------------------------
+
+function NavBtn({
+  path,
+  onClick,
+  disabled,
+  title,
+}: {
+  path: string;
+  onClick: () => void;
+  disabled: boolean;
+  title: string;
+}) {
+  return (
+    <button
+      className="chessboard-btn chessboard-btn--nav"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+    >
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path
+          d={path}
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
+const BOARD_SIZE = 400;
+
 export default function ChessBoard({ game }: { game: Game }) {
   const moveHistory = useMemo(() => {
     const chess = new Chess();
@@ -38,9 +159,9 @@ export default function ChessBoard({ game }: { game: Game }) {
     Record<string, React.CSSProperties>
   >({});
 
-  const moveListRef = useRef<HTMLOListElement>(null);
   const activeMoveRef = useRef<HTMLButtonElement>(null);
 
+  // Scroll active move into view
   useEffect(() => {
     activeMoveRef.current?.scrollIntoView({
       block: "nearest",
@@ -59,18 +180,21 @@ export default function ChessBoard({ game }: { game: Game }) {
     () => new Chess(boardPosition),
     [boardPosition],
   );
+  const evaluation = useStockfish(boardPosition);
 
+  // Navigation
   const clearSelection = () => {
     setSelectedSquare(null);
     setHighlightedSquares({});
   };
 
-  const goToMove = (moveIndex: number) => {
-    setCurrentMoveIndex(moveIndex);
+  const goToMove = (index: number) => {
+    setCurrentMoveIndex(index);
     setFreePlayChess(null);
     clearSelection();
   };
 
+  // Keyboard navigation
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (
@@ -78,70 +202,68 @@ export default function ChessBoard({ game }: { game: Game }) {
         e.target instanceof HTMLTextAreaElement
       )
         return;
-      const keyActions: Record<string, () => void> = {
+      const map: Record<string, () => void> = {
         ArrowLeft: () => goToMove(Math.max(0, currentMoveIndex - 1)),
         ArrowRight: () => goToMove(Math.min(totalMoves, currentMoveIndex + 1)),
         ArrowUp: () => goToMove(0),
         ArrowDown: () => goToMove(totalMoves),
       };
-      if (keyActions[e.key]) {
+      if (map[e.key]) {
         e.preventDefault();
-        keyActions[e.key]();
+        map[e.key]();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [currentMoveIndex, totalMoves]);
 
+  // Interaction
   const showLegalMoves = (square: string) => {
-    const legalMoves = chessAtPosition.moves({
+    const moves = chessAtPosition.moves({
       square: square as any,
       verbose: true,
     });
-    if (!legalMoves.length) {
+    if (!moves.length) {
       clearSelection();
       return;
     }
-
-    const squareStyles: Record<string, React.CSSProperties> = {
+    const styles: Record<string, React.CSSProperties> = {
       [square]: getSquareStyle("selected"),
     };
-    legalMoves.forEach((move) => {
-      const isCapture = !!chessAtPosition.get(move.to as any);
-      squareStyles[move.to] = getSquareStyle(isCapture ? "ring" : "dot");
+    moves.forEach((m) => {
+      styles[m.to] = getSquareStyle(
+        chessAtPosition.get(m.to as any) ? "ring" : "dot",
+      );
     });
-
-    setHighlightedSquares(squareStyles);
+    setHighlightedSquares(styles);
     setSelectedSquare(square);
   };
 
-  const attemptMove = (fromSquare: string, toSquare: string) => {
+  const attemptMove = (from: string, to: string): boolean => {
     const clone = new Chess(
       (freePlayChess ?? new Chess(fenAtCurrentMove)).fen(),
     );
-    if (!clone.move({ from: fromSquare, to: toSquare, promotion: "q" }))
-      return false;
+    if (!clone.move({ from, to, promotion: "q" })) return false;
     setFreePlayChess(clone);
     clearSelection();
     return true;
   };
 
-  const onSquareClick = (clickedSquare: string) => {
-    if (selectedSquare === clickedSquare) {
+  const onSquareClick = (sq: string) => {
+    if (selectedSquare === sq) {
       clearSelection();
       return;
     }
-    const clickedPiece = chessAtPosition.get(clickedSquare as any);
-    const isOwnPiece =
-      clickedPiece && clickedPiece.color === chessAtPosition.turn();
-    if (isOwnPiece) {
-      showLegalMoves(clickedSquare);
+    const piece = chessAtPosition.get(sq as any);
+    if (piece && piece.color === chessAtPosition.turn()) {
+      showLegalMoves(sq);
       return;
     }
-    if (selectedSquare && attemptMove(selectedSquare, clickedSquare)) return;
+    if (selectedSquare && attemptMove(selectedSquare, sq)) return;
     clearSelection();
   };
 
+  // Group moves into pairs for the move list
   const movePairs = useMemo(
     () =>
       moveHistory.reduce<{ white: string; black?: string }[]>(
@@ -155,40 +277,15 @@ export default function ChessBoard({ game }: { game: Game }) {
     [moveHistory],
   );
 
-  const NavButton = ({
-    svgPath,
-    onClick,
-    disabled,
-    title,
-  }: {
-    svgPath: string;
-    onClick: () => void;
-    disabled: boolean;
-    title: string;
-  }) => (
-    <button
-      className="chessboard-btn chessboard-btn--nav"
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-    >
-      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        <path
-          d={svgPath}
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-  );
-
   const activeTheme = THEMES[selectedThemeIndex];
   const isInFreePlay = freePlayChess !== null;
 
   return (
     <div className="chessboard-layout">
+      {/* Eval bar */}
+      <EvalBar evaluation={evaluation} height={BOARD_SIZE} />
+
+      {/* Board column */}
       <div className="chessboard-column">
         {/* Theme picker */}
         <div className="chessboard-themes">
@@ -207,43 +304,30 @@ export default function ChessBoard({ game }: { game: Game }) {
           ))}
         </div>
 
-        {/* Board — onMouseDown fires instantly on press */}
-        <div
-          className="chessboard-board-wrap"
-          onMouseDown={(e) => {
-            const square = (e.target as HTMLElement)
-              .closest("[data-square]")
-              ?.getAttribute("data-square");
-            if (!square) return;
-            const piece = chessAtPosition.get(square as any);
-            if (piece && piece.color === chessAtPosition.turn())
-              showLegalMoves(square);
-          }}
-        >
+        {/* Board */}
+        <div className="chessboard-board-wrap">
           <Chessboard
             position={boardPosition}
-            boardWidth={400}
+            boardWidth={BOARD_SIZE}
             customSquareStyles={highlightedSquares}
             customDarkSquareStyle={{ backgroundColor: activeTheme.dark }}
             customLightSquareStyle={{ backgroundColor: activeTheme.light }}
             onSquareClick={onSquareClick}
             onPieceDragEnd={clearSelection}
-            onPieceDrop={(fromSquare, toSquare) =>
-              attemptMove(fromSquare, toSquare)
-            }
+            onPieceDrop={(from, to) => attemptMove(from, to)}
           />
         </div>
 
-        {/* Controls */}
+        {/* Nav controls */}
         <div className="chessboard-controls">
-          <NavButton
-            svgPath="M3 3v10M13 3L7 8l6 5"
+          <NavBtn
+            path="M3 3v10M13 3L7 8l6 5"
             onClick={() => goToMove(0)}
             disabled={currentMoveIndex === 0 && !isInFreePlay}
             title="Start (↑)"
           />
-          <NavButton
-            svgPath="M10 3L4 8l6 5"
+          <NavBtn
+            path="M10 3L4 8l6 5"
             onClick={() => goToMove(Math.max(0, currentMoveIndex - 1))}
             disabled={currentMoveIndex === 0 && !isInFreePlay}
             title="Previous (←)"
@@ -252,14 +336,14 @@ export default function ChessBoard({ game }: { game: Game }) {
             {currentMoveIndex}{" "}
             <span className="chessboard-move-count-sep">/</span> {totalMoves}
           </span>
-          <NavButton
-            svgPath="M6 3l6 5-6 5"
+          <NavBtn
+            path="M6 3l6 5-6 5"
             onClick={() => goToMove(Math.min(totalMoves, currentMoveIndex + 1))}
             disabled={currentMoveIndex === totalMoves}
             title="Next (→)"
           />
-          <NavButton
-            svgPath="M13 3v10M3 3l6 5-6 5"
+          <NavBtn
+            path="M13 3v10M3 3l6 5-6 5"
             onClick={() => goToMove(totalMoves)}
             disabled={currentMoveIndex === totalMoves}
             title="End (↓)"
@@ -288,22 +372,21 @@ export default function ChessBoard({ game }: { game: Game }) {
       {/* Move list */}
       <div className="chessboard-movelist-column">
         <p className="chessboard-movelist-label">Moves</p>
-        <ol className="chessboard-movelist" ref={moveListRef}>
-          {movePairs.map((pair, pairIndex) => (
-            <li key={pairIndex} className="chessboard-movelist-row">
-              <span className="chessboard-movelist-num">{pairIndex + 1}.</span>
-              {(["white", "black"] as const).map((color, colorIndex) => {
-                const moveIndex = pairIndex * 2 + colorIndex + 1;
+        <ol className="chessboard-movelist">
+          {movePairs.map((pair, pi) => (
+            <li key={pi} className="chessboard-movelist-row">
+              <span className="chessboard-movelist-num">{pi + 1}.</span>
+              {(["white", "black"] as const).map((color) => {
+                const mi = pi * 2 + (color === "white" ? 1 : 2);
                 const san = color === "white" ? pair.white : pair.black;
                 if (!san) return null;
+                const isActive = currentMoveIndex === mi;
                 return (
                   <button
                     key={color}
-                    ref={
-                      currentMoveIndex === moveIndex ? activeMoveRef : undefined
-                    }
-                    className={`chessboard-movelist-move ${currentMoveIndex === moveIndex ? "chessboard-movelist-move--active" : ""}`}
-                    onClick={() => goToMove(moveIndex)}
+                    ref={isActive ? activeMoveRef : undefined}
+                    className={`chessboard-movelist-move${isActive ? " chessboard-movelist-move--active" : ""}`}
+                    onClick={() => goToMove(mi)}
                   >
                     {san}
                   </button>

@@ -1,13 +1,16 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// Vite configuration for the chessographics app.
-// The server historyApiFallback is handled automatically by Vite's devServer
-// but we need to configure the base for proper SPA routing support.
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    exclude: ["stockfish"],
+  },
   server: {
-    // Redirect all 404s back to index.html so React Router can handle client-side routing
-    historyApiFallback: true,
+    headers: {
+      // Required for SharedArrayBuffer (used by stockfish WASM threads)
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
   },
 });

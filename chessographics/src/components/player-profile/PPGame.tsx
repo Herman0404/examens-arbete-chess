@@ -5,6 +5,7 @@ interface PPGameProps {
   game: Game;
 }
 
+// Format seconds into "5+3 min", "10 min", "1:30+0 min" etc.
 function formatTimeControl(tc: string): string {
   const [base, increment] = tc.split("+").map(Number);
   const minutes = Math.floor(base / 60);
@@ -14,6 +15,13 @@ function formatTimeControl(tc: string): string {
       ? `${minutes}:${String(seconds).padStart(2, "0")}`
       : `${minutes}`;
   return increment ? `${baseStr}+${increment} min` : `${baseStr} min`;
+}
+
+// Parse opening name from PGN header
+function getOpening(pgn: string | undefined): string | null {
+  if (!pgn) return null;
+  const match = pgn.match(/\[Opening "([^"]+)"\]/);
+  return match?.[1] ?? null;
 }
 
 const DRAW_RESULTS = new Set([
@@ -48,12 +56,14 @@ export default function PPGame({ game }: PPGameProps) {
 
   const badgeLabel = (won: boolean) => (isDraw ? "Draw" : won ? "Win" : "Loss");
 
-  // Extract a short ID from the game URL for the route (e.g. "https://chess.com/game/live/12345" → "12345")
+  // Extract game ID from URL (e.g. ".../live/12345" → "12345")
   const gameId = game.url.split("/").at(-1) ?? "game";
 
   const handleClick = () => {
     navigate(`/game/${gameId}`, { state: { game } });
   };
+
+  const opening = getOpening(game.pgn);
 
   return (
     <div className="PPGame-container">
@@ -101,12 +111,15 @@ export default function PPGame({ game }: PPGameProps) {
           </div>
         </div>
 
-        {/* Game footer: time control */}
+        {/* Time control + opening */}
         <div className="player-profile-game-footer">
           <span className="player-profile-game-time-class">
             {game.time_class.toUpperCase()} ·{" "}
             {formatTimeControl(game.time_control)}
           </span>
+          {opening && (
+            <span className="player-profile-game-opening">{opening}</span>
+          )}
         </div>
       </li>
     </div>

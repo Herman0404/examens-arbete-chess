@@ -1,9 +1,4 @@
-/**
- * Shared TypeScript type definitions for the chessographics app.
- * All types used across multiple modules should live here.
- */
-
-/** A Chess.com player profile returned by the /pub/player/:username endpoint */
+// Chess.com player profile
 export interface PlayerProfile {
   username: string;
   avatar?: string;
@@ -15,7 +10,7 @@ export interface PlayerProfile {
   joined: number;
 }
 
-/** Rating information for a specific time control */
+// Rating info for a single time control
 export interface RatingEntry {
   last?: {
     rating: number;
@@ -34,7 +29,7 @@ export interface RatingEntry {
   };
 }
 
-/** Player stats across all time controls */
+// Player stats across all time controls
 export interface PlayerStats {
   chess_rapid?: RatingEntry;
   chess_blitz?: RatingEntry;
@@ -42,9 +37,9 @@ export interface PlayerStats {
   chess_daily?: RatingEntry;
 }
 
-/** A single game from the Chess.com archives */
+// A single game from the Chess.com archives
 export interface Game {
-  url: string; // Link
+  url: string;
   // Time info
   time_class: string;
   time_control: string;
@@ -60,6 +55,6 @@ export interface Game {
     rating: number;
     result: string;
   };
-  // Game info
+  // Game data
   pgn?: string;
 }

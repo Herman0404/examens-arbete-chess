@@ -14,7 +14,8 @@
     "react": "^19.2.5",
     "react-chessboard": "^4.7.3",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.6.0"
+    "react-router-dom": "^7.6.0",
+    "stockfish": "^18.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

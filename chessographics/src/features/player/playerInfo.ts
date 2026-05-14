@@ -1,13 +1,7 @@
-/**
- * Custom React hook for loading all player data in parallel.
- * Combines profile, stats, and recent games into a single state object.
- */
-
 import { useState, useEffect } from "react";
 import { getPlayer, getPlayerStats, getRecentGames } from "../../api/chess";
 import type { PlayerProfile, PlayerStats, Game } from "../../types/types";
 
-/** The interface of state managed by the usePlayer hook */
 interface PlayerState {
   profile: PlayerProfile | null;
   stats: PlayerStats | null;
@@ -16,7 +10,6 @@ interface PlayerState {
   error: string | null;
 }
 
-/** Empty state before any fetch */
 const INITIAL_STATE: PlayerState = {
   profile: null,
   stats: null,
@@ -25,24 +18,17 @@ const INITIAL_STATE: PlayerState = {
   error: null,
 };
 
-/**
- * Fetches a player's profile, stats, and recent games.
- * Re-fetches whenever the username changes.
- *
- * @param username - A Chess.com username to look up
- * @returns Current loading/error state plus fetched data
- */
-export function playerInfo(username: string): PlayerState {
+// Fetch profile, stats and recent games for a given username
+export function usePlayerInfo(username: string): PlayerState {
   const [state, setState] = useState<PlayerState>(INITIAL_STATE);
 
   useEffect(() => {
-    // Skip fetch if no username is provided
     if (!username) return;
 
-    // Start loading, clear any previous error
+    // Start loading
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
-    // Fetch all three endpoints in parallel for performance
+    // Fetch all three in parallel
     Promise.all([
       getPlayer(username),
       getPlayerStats(username),

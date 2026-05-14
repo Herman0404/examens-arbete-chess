@@ -1,8 +1,3 @@
-/**
- * Site-wide header component.
- * Displays the logo and links back to the home page.
- */
-
 import { Link } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 

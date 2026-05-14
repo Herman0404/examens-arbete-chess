@@ -1,8 +1,3 @@
-/**
- * Site-wide footer component.
- * Shows the logo and placeholder links.
- */
-
 import { Link } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 

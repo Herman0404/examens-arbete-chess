@@ -1,9 +1,3 @@
-/**
- * GamePage — the individual game route ("/game/:gameId").
- * Receives the full game object via React Router location state
- * and renders the ChessBoard component.
- */
-
 import { useLocation, useNavigate } from "react-router-dom";
 import ChessBoard from "../features/games/ChessBoard";
 import type { Game } from "../types/types";

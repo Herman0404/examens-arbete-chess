@@ -1,12 +1,3 @@
-/**
- * App — the root component.
- * Sets up React Router with:
- *   /              → HomePage (username search)
- *   /profile/:username → ProfilePage (player stats + games)
- *
- * The Header and Footer are rendered on every route inside the layout.
- */
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/general/Header";
 import Footer from "./components/general/Footer";
