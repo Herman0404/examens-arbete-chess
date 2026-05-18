@@ -4,6 +4,7 @@ import Footer from "./components/general/Footer";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import GamePage from "./pages/GamePage";
+import AnalysisPage from "./pages/AnalysisPage";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/profile/:username" element={<ProfilePage />} />
             <Route path="/game/:gameId" element={<GamePage />} />
+            <Route path="/analysis/:username" element={<AnalysisPage />} />
           </Routes>
         </div>
 

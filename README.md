@@ -1,6 +1,14 @@
 # Chessographics
 
-A fun stats page where the chess.com public API is used to generate fun insights from your latest games.
+A fun stats page where the chess.com public API is used to generate information from your latest games.
+
+## Getting Started
+
+```bash
+cd chessographics
+npm install
+npm run dev
+```
 
 ## Planned Features
 

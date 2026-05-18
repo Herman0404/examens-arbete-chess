@@ -16,15 +16,23 @@ export async function getPlayerStats(username: string): Promise<PlayerStats> {
   return res.json();
 }
 
-// Fetch the most recent monthly archive of games
-export async function getRecentGames(username: string): Promise<Game[]> {
+// Fetch the N most recent games, working backwards through monthly archives
+export async function getRecentGames(
+  username: string,
+  count = 5,
+): Promise<Game[]> {
   const archivesRes = await fetch(`${BASE}/player/${username}/games/archives`);
   const { archives } = await archivesRes.json();
 
-  const latestUrl: string | undefined = archives.at(-1);
-  if (!latestUrl) return [];
+  if (!archives?.length) return [];
 
-  const gamesRes = await fetch(latestUrl);
-  const { games } = await gamesRes.json();
-  return games as Game[];
+  const games: Game[] = [];
+
+  for (let i = archives.length - 1; i >= 0 && games.length < count; i--) {
+    const res = await fetch(archives[i]);
+    const { games: monthGames } = await res.json();
+    games.unshift(...monthGames);
+  }
+
+  return games.slice(-count);
 }

@@ -1,15 +1,17 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import ChessBoard from "../features/games/ChessBoard";
 import type { Game } from "../types/types";
+import type { MoveResult } from "../features/analysis/gameAnalysis";
 
 export default function GamePage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Game is passed via navigation state from ProfilePage
   const game = location.state?.game as Game | undefined;
+  const analysedMoves = location.state?.analysedMoves as
+    | MoveResult[]
+    | undefined;
 
-  // If someone navigates directly to the URL without state, send them back
   if (!game) {
     return (
       <main>
@@ -29,7 +31,7 @@ export default function GamePage() {
       <h1 className="player-profile-username">
         {white} vs {black}
       </h1>
-      <ChessBoard game={game} />
+      <ChessBoard game={game} analysedMoves={analysedMoves} />
     </main>
   );
 }

@@ -7,9 +7,6 @@ export default function Footer() {
       <Link to="/" className="footer-logo-link">
         <img src={logo} alt="Chessographics logo" className="footer-logo" />
       </Link>
-      <nav className="footer-nav">
-        <p className="footer-nav-item">Terms</p>
-      </nav>
     </footer>
   );
 }
